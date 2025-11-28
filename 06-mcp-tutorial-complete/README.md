@@ -121,15 +121,19 @@ You: Find products related to food
 You can also test the MCP server **directly** using the MCP Inspector web UI.
 This is helpful to debug tools without running the agent client.
 
-1. From this folder, start the inspector:
+1. From this folder, activate the virtual environment:
+   ```bash
+   source .venv/bin/activate
+   ```
+2. Then start the inspector:
    ```bash
    npx @modelcontextprotocol/inspector
    ```
-2. In the Inspector UI:
+3. In the Inspector UI:
    - **Transport type**: `STDIO`
    - **Command**: `python`
    - **Arguments**: `mcp_server.py`
-3. Click **Connect**, then use the **Tools** tab to invoke and debug the MCP tools.
+4. Click **Connect**, then use the **Tools** tab to invoke and debug the MCP tools.
 
 ## Understanding the Code
 

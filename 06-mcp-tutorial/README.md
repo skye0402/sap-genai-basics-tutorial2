@@ -52,15 +52,19 @@ After completing this exercise, you will understand:
 After setup you can test the MCP server **on its own** using the MCP Inspector web UI.
 This is useful for debugging your tools before wiring them into the agent.
 
-1. From this folder, start the inspector:
+1. From this folder, activate the virtual environment:
+   ```bash
+   source .venv/bin/activate
+   ```
+2. Then start the inspector:
    ```bash
    npx @modelcontextprotocol/inspector
    ```
-2. In the Inspector UI:
+3. In the Inspector UI:
    - **Transport type**: `STDIO`
    - **Command**: `python`
    - **Arguments**: `mcp_server.py`
-3. Click **Connect**, then use the **Tools** tab to call your MCP tools interactively.
+4. Click **Connect**, then use the **Tools** tab to call your MCP tools interactively.
 
 ---
 
