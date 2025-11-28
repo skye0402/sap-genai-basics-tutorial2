@@ -3,6 +3,7 @@
 In this exercise, you'll learn how to build an **agentic AI** using:
 - **LangGraph** with a **React Agent** pattern
 - **Model Context Protocol (MCP)** for tool communication
+- **S/4HANA Cloud API** integration for real enterprise data
 
 ## Learning Objectives
 
@@ -10,6 +11,7 @@ After completing this exercise, you will understand:
 1. How MCP servers expose tools to AI agents
 2. How the React agent pattern works (Reasoning + Acting loop)
 3. How to create custom tools for LLM agents
+4. How to integrate enterprise APIs (S/4HANA) with AI agents
 
 ## Architecture Overview
 
@@ -17,16 +19,16 @@ After completing this exercise, you will understand:
 ┌─────────────────┐         stdio          ┌─────────────────┐
 │                 │ ◄────────────────────► │                 │
 │  React Agent    │                        │   MCP Server    │
-│  (LangGraph)    │                        │  (Calculator)   │
+│  (LangGraph)    │                        │                 │
 │                 │  tool calls/results    │                 │
-└────────┬────────┘                        └─────────────────┘
-         │                                   Tools:
-         │ LLM calls                         • add(a, b) ✅
-         ▼                                   • multiply(a, b) ❓
-┌─────────────────┐                          • subtract(a, b) ❓
-│   SAP AI Core   │                          • divide(a, b) ⭐
-│   (GPT-4.1)     │
-└─────────────────┘
+└────────┬────────┘                        └────────┬────────┘
+         │                                          │
+         │ LLM calls                      Tools:    │ HTTP/OData
+         ▼                                • add ✅   ▼
+┌─────────────────┐                       • multiply ❓  ┌─────────────────┐
+│   SAP AI Core   │                       • subtract ❓  │  S/4HANA Cloud  │
+│   (GPT-4.1)     │                       • divide ❓    │  Product API    │
+└─────────────────┘                       • query_products ⭐ └─────────────────┘
 ```
 
 ## Setup (5 minutes)
@@ -41,11 +43,30 @@ After completing this exercise, you will understand:
    uv sync
    ```
 
-3. **Verify your `.env` file** is configured in the repo root.
+3. **Verify your `.env` file** is configured in the repo root with:
+   - SAP AI Core credentials
+   - S/4HANA credentials (`S4HANA_USER`, `S4HANA_PASSWORD`, `S4PRODUCT_MASTER_ENDPOINT`)
+
+## Optional: Test MCP Server with MCP Inspector
+
+After setup you can test the MCP server **on its own** using the MCP Inspector web UI.
+This is useful for debugging your tools before wiring them into the agent.
+
+1. From this folder, start the inspector:
+   ```bash
+   npx @modelcontextprotocol/inspector
+   ```
+2. In the Inspector UI:
+   - **Transport type**: `STDIO`
+   - **Command**: `python`
+   - **Arguments**: `mcp_server.py`
+3. Click **Connect**, then use the **Tools** tab to call your MCP tools interactively.
 
 ---
 
-## Exercise 1: Implement the `multiply` Tool (10 minutes)
+# Part 1: Calculator Tools (Warmup - 15 minutes)
+
+## Exercise 1.1: Implement the `multiply` Tool (5 minutes)
 
 Open `mcp_server.py` and find the `multiply` function. It currently raises a `NotImplementedError`.
 
@@ -71,11 +92,12 @@ Try: `What is 7 times 8?`
 
 ---
 
-## Exercise 2: Implement the `subtract` Tool (10 minutes)
+## Exercise 1.2: Implement `subtract` and `divide` (10 minutes)
 
-Find the `subtract` function in `mcp_server.py` and implement it.
+Implement the remaining calculator tools in `mcp_server.py`:
 
-**Your task:** Replace the `raise` statement with code that subtracts `b` from `a`.
+1. **subtract(a, b)**: Return `a - b`
+2. **divide(a, b)**: Return `a / b` as a float, handle division by zero!
 
 ### Test Your Solution
 
@@ -83,42 +105,84 @@ Find the `subtract` function in `mcp_server.py` and implement it.
 uv run python agent_client.py --verbose
 ```
 
-Try: `What is 100 minus 37?`
+Try: `What is 100 minus 37?` and `What is 100 divided by 4?`
 
 ---
 
-## Exercise 3: Add a `divide` Tool (15 minutes)
+# Part 2: S/4HANA Product API Integration (Main Exercise - 30 minutes)
 
-Create a completely new tool from scratch!
+Now let's build something more interesting: connect your AI agent to a real enterprise system!
 
-**Your task:** Add a `divide` tool that:
-1. Takes two numbers `a` and `b`
-2. Returns `a / b` as a float
-3. Handles division by zero gracefully
+## Exercise 2.1: Add the API Documentation Tool (10 minutes)
 
-**Template to get started:**
+The AI needs to understand how to query the S/4HANA Product API. Create a tool that provides this documentation.
+
+**Your task:** In `mcp_server.py`, implement the `get_product_api_documentation` tool:
 
 ```python
 @mcp.tool()
-def divide(a: int, b: int) -> float:
-    """Divide the first number by the second.
+def get_product_api_documentation() -> str:
+    """Get documentation for the S/4HANA Product Master API.
     
-    Args:
-        a: Dividend (number to be divided)
-        b: Divisor (number to divide by)
-        
+    Call this tool FIRST to understand how to query products from S/4HANA.
+    The documentation explains available OData query parameters.
+    
     Returns:
-        The quotient (a / b)
+        API documentation as a string
     """
-    # Your implementation here
-    pass
+    # TODO: Return the API documentation from s4hana_product_api_docs.py
+    raise NotImplementedError("Exercise 2.1: Return the PRODUCT_API_DOCUMENTATION")
 ```
 
-**Important:** The docstring is read by the LLM! Write it clearly.
+**Hint:** Import and return `PRODUCT_API_DOCUMENTATION` from `s4hana_product_api_docs.py`
+
+---
+
+## Exercise 2.2: Implement the Product Query Tool (20 minutes)
+
+Now implement the tool that actually calls the S/4HANA API!
+
+**Your task:** Complete the `query_products` function in `mcp_server.py`:
+
+```python
+@mcp.tool()
+def query_products(
+    filter_expression: str = "",
+    select_fields: str = "",
+    top: int = 10,
+) -> dict:
+    """Query the S/4HANA Product Master API.
+    
+    Args:
+        filter_expression: OData $filter (e.g., "contains(Product,'CAT')")
+        select_fields: Comma-separated fields to return
+        top: Maximum results (default: 10)
+    
+    Returns:
+        Dictionary with success status and product data
+    """
+    # TODO: Implement the API call using httpx
+    raise NotImplementedError("Exercise 2.2: Implement the API call")
+```
+
+**Implementation steps:**
+1. Build the URL: `{S4PRODUCT_ENDPOINT}/Product`
+2. Add query parameters: `$filter`, `$select`, `$top`
+3. Make HTTP GET request with Basic Auth
+4. Return the results as a dictionary
+
+**Hint:** Use `httpx.Client()` with `auth=(S4HANA_USER, S4HANA_PASSWORD)`
 
 ### Test Your Solution
 
-Try: `What is 100 divided by 4?`
+```bash
+uv run python agent_client.py --verbose
+```
+
+Try these questions:
+- `What products do we have?`
+- `Search for products containing CAT`
+- `Show me finished products (FERT type)`
 
 ---
 

@@ -5,6 +5,7 @@
 This folder contains a working **agentic AI** implementation using:
 - **LangGraph** with a **React Agent** pattern
 - **Model Context Protocol (MCP)** for tool communication
+- **S/4HANA Cloud API** integration for real enterprise data
 
 ## Architecture
 
@@ -12,16 +13,17 @@ This folder contains a working **agentic AI** implementation using:
 ┌─────────────────┐         stdio          ┌─────────────────┐
 │                 │ ◄────────────────────► │                 │
 │  React Agent    │                        │   MCP Server    │
-│  (LangGraph)    │                        │  (Calculator)   │
+│  (LangGraph)    │                        │                 │
 │                 │  tool calls/results    │                 │
-└────────┬────────┘                        └─────────────────┘
-         │                                   Tools:
-         │ LLM calls                         • add(a, b)
-         ▼                                   • multiply(a, b)
-┌─────────────────┐                          • subtract(a, b)
-│   SAP AI Core   │                          • divide(a, b)
-│   (GPT-4.1)     │
-└─────────────────┘
+└────────┬────────┘                        └────────┬────────┘
+         │                                          │
+         │ LLM calls                      Tools:    │ HTTP/OData
+         ▼                                • add     ▼
+┌─────────────────┐                       • multiply    ┌─────────────────┐
+│   SAP AI Core   │                       • subtract    │  S/4HANA Cloud  │
+│   (GPT-4.1)     │                       • divide      │  Product API    │
+└─────────────────┘                       • get_product_api_documentation
+                                          • query_products
 ```
 
 ## The React Agent Pattern
@@ -50,8 +52,9 @@ Agent Response: "5 times 3 plus 2 equals 17"
 
 | File | Description |
 |------|-------------|
-| `mcp_server.py` | MCP server with calculator tools (add, multiply, subtract, divide) |
+| `mcp_server.py` | MCP server with calculator and S/4HANA Product API tools |
 | `agent_client.py` | LangGraph React agent that connects to the MCP server |
+| `s4hana_product_api_docs.py` | API documentation for the S/4HANA Product Master API |
 | `pyproject.toml` | Project dependencies |
 
 ## Setup
@@ -96,6 +99,7 @@ You:
 
 ### Try These Prompts
 
+**Calculator:**
 ```
 You: What is 42 + 17?
 You: Calculate 7 times 8
@@ -104,14 +108,28 @@ You: If I have 5 apples and buy 3 more, then give away 2, how many do I have?
 You: What is (10 + 5) * 3?
 ```
 
-### Option 2: Test MCP Server Separately
-
-You can test the MCP server using the MCP development tools:
-
-```bash
-# Start the MCP Inspector (opens in browser)
-uv run mcp dev mcp_server.py
+**S/4HANA Product API:**
 ```
+You: What products do we have?
+You: Search for products containing CAT
+You: Show me finished products (type FERT)
+You: Find products related to food
+```
+
+### Option 2: Test MCP Server Separately (MCP Inspector)
+
+You can also test the MCP server **directly** using the MCP Inspector web UI.
+This is helpful to debug tools without running the agent client.
+
+1. From this folder, start the inspector:
+   ```bash
+   npx @modelcontextprotocol/inspector
+   ```
+2. In the Inspector UI:
+   - **Transport type**: `STDIO`
+   - **Command**: `python`
+   - **Arguments**: `mcp_server.py`
+3. Click **Connect**, then use the **Tools** tab to invoke and debug the MCP tools.
 
 ## Understanding the Code
 

@@ -45,8 +45,9 @@ MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "5000"))
 TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
 SYSTEM_PROMPT = os.getenv(
     "LLM_SYSTEM_PROMPT",
-    "You are a helpful assistant with access to calculator tools. "
-    "Use the available tools to perform mathematical calculations when asked."
+    """You are a helpful assistant. Don't give up if a tool call fails but try an alternative approach before responding to the user.
+
+Always be helpful and explain what you're doing."""
 )
 
 # Parse command line arguments

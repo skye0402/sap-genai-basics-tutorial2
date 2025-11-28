@@ -17,6 +17,9 @@ dependencies = [
     
     # Adapter to use MCP tools with LangChain/LangGraph
     "langchain-mcp-adapters",
+    
+    # HTTP client for S/4HANA API calls
+    "httpx",
 ]
 
 [tool.uv]
