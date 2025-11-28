@@ -88,18 +88,12 @@ async def run_agent():
             
             print(f"✅ Loaded {len(tools)} tools from MCP server:")
             for tool in tools:
-                # Show just the first line of description for cleaner output
+                # Show just the first line of description
                 desc = tool.description.split('\n')[0]
                 print(f"   - {tool.name}: {desc}")
             print("-" * 50)
             
             # Create a React agent with the LLM and MCP tools
-            # The React agent will automatically:
-            # - Reason about which tools to use
-            # - Call the tools
-            # - Observe results
-            # - Continue until the task is complete
-            #
             # InMemorySaver enables chat history - the agent remembers previous messages
             checkpointer = InMemorySaver()
             agent = create_react_agent(llm, tools, prompt=SYSTEM_PROMPT, checkpointer=checkpointer)
@@ -149,7 +143,6 @@ async def run_agent():
                         elif kind == "on_chat_model_end":
                             output = event["data"]["output"]
                             if hasattr(output, "content") and output.content:
-                                # Only print if it's the final answer (no tool calls)
                                 if not hasattr(output, "tool_calls") or not output.tool_calls:
                                     print(f"\nAssistant: {output.content}\n")
                 else:

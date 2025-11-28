@@ -1,10 +1,11 @@
 """
-MCP Server with simple calculator tools.
+MCP Server with Calculator Tools - Complete Solution
 
-This server exposes three simple tools via the Model Context Protocol:
+This server exposes calculator tools via the Model Context Protocol:
 - add: Add two numbers
 - multiply: Multiply two numbers  
 - subtract: Subtract two numbers
+- divide: Divide two numbers
 
 Run with:
     uv run python mcp_server.py
@@ -56,6 +57,25 @@ def subtract(a: int, b: int) -> int:
         The difference (a - b)
     """
     return a - b
+
+
+@mcp.tool()
+def divide(a: int, b: int) -> float:
+    """Divide the first number by the second.
+    
+    Args:
+        a: Dividend (number to be divided)
+        b: Divisor (number to divide by)
+        
+    Returns:
+        The quotient (a / b)
+        
+    Raises:
+        ValueError: If b is zero (division by zero)
+    """
+    if b == 0:
+        raise ValueError("Cannot divide by zero")
+    return a / b
 
 
 if __name__ == "__main__":

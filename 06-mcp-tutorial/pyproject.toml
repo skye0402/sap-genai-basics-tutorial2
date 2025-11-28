@@ -1,0 +1,23 @@
+[project]
+name = "mcp-tutorial"
+version = "0.1.0"
+description = "Workshop exercise: Building an Agentic AI with LangGraph and MCP"
+requires-python = ">=3.12"
+dependencies = [
+    # SAP AI Core SDK for LLM access
+    "sap-ai-sdk-gen==5.8.0",
+    "python-dotenv",
+    
+    # MCP (Model Context Protocol) SDK
+    "mcp[cli]",
+    
+    # LangGraph for building the React agent
+    "langgraph",
+    "langgraph-prebuilt",
+    
+    # Adapter to use MCP tools with LangChain/LangGraph
+    "langchain-mcp-adapters",
+]
+
+[tool.uv]
+# uv will use this pyproject to create an isolated environment

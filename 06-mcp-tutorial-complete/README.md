@@ -1,14 +1,10 @@
-# 06 - MCP Tutorial: Building an Agentic AI
+# 06 - MCP Tutorial: Complete Solution
 
-In this exercise, you'll learn how to build an **agentic AI** using:
+> **Note:** This is the complete solution. For the exercise version, see `../06-mcp-tutorial/`
+
+This folder contains a working **agentic AI** implementation using:
 - **LangGraph** with a **React Agent** pattern
 - **Model Context Protocol (MCP)** for tool communication
-
-## What You'll Learn
-
-1. **MCP Server**: How to create tools that can be called by AI agents
-2. **React Agent**: How an agent reasons, acts, and observes in a loop
-3. **Tool Integration**: How to connect MCP tools to LangGraph
 
 ## Architecture
 
@@ -23,7 +19,7 @@ In this exercise, you'll learn how to build an **agentic AI** using:
          │ LLM calls                         • add(a, b)
          ▼                                   • multiply(a, b)
 ┌─────────────────┐                          • subtract(a, b)
-│   SAP AI Core   │
+│   SAP AI Core   │                          • divide(a, b)
 │   (GPT-4.1)     │
 └─────────────────┘
 ```
@@ -54,7 +50,7 @@ Agent Response: "5 times 3 plus 2 equals 17"
 
 | File | Description |
 |------|-------------|
-| `mcp_server.py` | MCP server with calculator tools (add, multiply, subtract) |
+| `mcp_server.py` | MCP server with calculator tools (add, multiply, subtract, divide) |
 | `agent_client.py` | LangGraph React agent that connects to the MCP server |
 | `pyproject.toml` | Project dependencies |
 
@@ -62,7 +58,7 @@ Agent Response: "5 times 3 plus 2 equals 17"
 
 1. **Navigate to this directory:**
    ```bash
-   cd 06-mcp-tutorial
+   cd 06-mcp-tutorial-complete
    ```
 
 2. **Create virtual environment and install dependencies:**
@@ -70,33 +66,30 @@ Agent Response: "5 times 3 plus 2 equals 17"
    uv sync
    ```
 
-3. **Ensure your `.env` file is configured** (in the repo root):
-   - SAP AI Core credentials must be set
-   - See `.env.example` for required variables
+3. **Ensure your `.env` file is configured** (in the repo root)
 
-## Running the Exercise
+## Running
 
-### Option 1: Run the Agent Client (Recommended)
-
-The agent client automatically starts the MCP server as a subprocess:
+### Basic Mode
 
 ```bash
 uv run python agent_client.py
 ```
 
-You'll see:
-```
-🔌 Connecting to MCP Calculator Server...
---------------------------------------------------
-✅ Loaded 3 tools from MCP server:
-   - add: Add two numbers together.
-   - multiply: Multiply two numbers together.
-   - subtract: Subtract the second number from the first.
---------------------------------------------------
+### Verbose Mode (See Tool Calls)
 
-🤖 React Agent Ready!
-Ask me math questions and I'll use the calculator tools.
-Type 'quit' or press Enter on empty line to exit.
+```bash
+uv run python agent_client.py --verbose
+```
+
+Example with verbose mode:
+```
+You: What is 3 + 7 times 2?
+
+  🔧 Calling tool: multiply({'a': 7, 'b': 2})
+  ✅ Result: 14
+  🔧 Calling tool: add({'a': 3, 'b': 14})
+  ✅ Result: 17
 
 You: 
 ```
@@ -166,62 +159,6 @@ Key points:
 - `stdio_client` communicates with the MCP server via stdin/stdout
 - `load_mcp_tools` converts MCP tools to LangChain format
 - `create_react_agent` creates the reasoning loop
-
-## Exercises
-
-### Exercise 1: Add a New Tool
-
-Add a `divide` tool to `mcp_server.py`:
-
-```python
-@mcp.tool()
-def divide(a: int, b: int) -> float:
-    """Divide the first number by the second.
-    
-    Args:
-        a: Dividend (number to be divided)
-        b: Divisor (number to divide by)
-        
-    Returns:
-        The quotient (a / b)
-    """
-    if b == 0:
-        raise ValueError("Cannot divide by zero")
-    return a / b
-```
-
-### Exercise 2: Add a Power Tool
-
-```python
-@mcp.tool()
-def power(base: int, exponent: int) -> int:
-    """Raise a number to a power.
-    
-    Args:
-        base: The base number
-        exponent: The power to raise to
-        
-    Returns:
-        base raised to the power of exponent
-    """
-    return base ** exponent
-```
-
-### Exercise 3: Create a Different MCP Server
-
-Create a new server with string manipulation tools:
-
-```python
-@mcp.tool()
-def reverse_string(text: str) -> str:
-    """Reverse a string."""
-    return text[::-1]
-
-@mcp.tool()
-def count_words(text: str) -> int:
-    """Count words in a string."""
-    return len(text.split())
-```
 
 ## Troubleshooting
 
