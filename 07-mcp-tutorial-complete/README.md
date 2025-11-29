@@ -1,6 +1,6 @@
-# 06 - MCP Tutorial: Complete Solution
+# 07 - MCP Tutorial: Complete Solution
 
-> **Note:** This is the complete solution. For the exercise version, see `../06-mcp-tutorial/`
+> **Note:** This is the complete solution. For the exercise version, see `../07-mcp-tutorial/`
 
 This folder contains a working **agentic AI** implementation using:
 - **LangGraph** with a **React Agent** pattern
@@ -61,7 +61,7 @@ Agent Response: "5 times 3 plus 2 equals 17"
 
 1. **Navigate to this directory:**
    ```bash
-   cd 06-mcp-tutorial-complete
+   cd 07-mcp-tutorial-complete
    ```
 
 2. **Create virtual environment and install dependencies:**

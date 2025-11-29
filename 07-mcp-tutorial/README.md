@@ -1,4 +1,4 @@
-# 06 - MCP Tutorial: Building an Agentic AI
+# 07 - MCP Tutorial: Building an Agentic AI
 
 In this exercise, you'll learn how to build an **agentic AI** using:
 - **LangGraph** with a **React Agent** pattern
@@ -35,7 +35,7 @@ After completing this exercise, you will understand:
 
 1. **Navigate to this directory:**
    ```bash
-   cd 06-mcp-tutorial
+   cd 07-mcp-tutorial
    ```
 
 2. **Install dependencies:**
@@ -299,7 +299,7 @@ def my_tool(param: str) -> str:
 
 ## Solution
 
-See `../06-mcp-tutorial-complete/` for the complete implementation.
+See `../07-mcp-tutorial-complete/` for the complete implementation.
 
 ## Further Reading
 
