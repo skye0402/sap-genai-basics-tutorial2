@@ -27,7 +27,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
@@ -45,7 +45,23 @@ MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "5000"))
 TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.1"))
 SYSTEM_PROMPT = os.getenv(
     "LLM_SYSTEM_PROMPT",
-    """You are a helpful assistant. Don't give up if a tool call fails but try an alternative approach before responding to the user.
+    """You are a helpful assistant with access to tools for calculations, querying S/4HANA product data, and looking up warehouse stock.
+
+MEMORY RULES — follow these strictly:
+1. At the very start of every conversation, call memory_load(). If memory contains the user's name, greet them by name.
+2. You MUST call memory_save() whenever:
+   - The user tells you their name, role, preferences, or any personal detail.
+   - You discover something new about the API (e.g. which entity holds a field).
+   - You find a query pattern that worked well.
+   Do NOT wait to be asked — save immediately after learning something new.
+3. Before saving, check if the same information is already in memory. Do NOT save duplicates.
+4. If information in memory is outdated or wrong, use memory_delete() to remove it first, then memory_save() the correction.
+5. NEVER tell the user that you are saving or loading memory. Just do it silently in the background. Act naturally as if you simply remember things.
+
+When a user asks about data you don't have or fields you're unsure about:
+1. Check your memory — you may have solved something similar before.
+2. If memory doesn't help, fetch the OData $metadata (via the product_api tool with path="$metadata") or call get_product_api_documentation() to discover which entities and fields are available.
+3. Never say "this data is not available" without first exploring the API metadata.
 
 Always be helpful and explain what you're doing."""
 )
@@ -103,7 +119,7 @@ async def run_agent():
             #
             # InMemorySaver enables chat history - the agent remembers previous messages
             checkpointer = InMemorySaver()
-            agent = create_react_agent(llm, tools, prompt=SYSTEM_PROMPT, checkpointer=checkpointer)
+            agent = create_agent(model=llm, tools=tools, system_prompt=SYSTEM_PROMPT, checkpointer=checkpointer)
             
             # Config with thread_id to maintain conversation context
             config = {"configurable": {"thread_id": "chat-session"}}

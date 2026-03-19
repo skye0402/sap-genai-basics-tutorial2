@@ -5,7 +5,7 @@ description = "Workshop exercise: Building an Agentic AI with LangGraph and MCP"
 requires-python = ">=3.12"
 dependencies = [
     # SAP AI Core SDK for LLM access
-    "sap-ai-sdk-gen==5.8.0",
+    "sap-ai-sdk-gen==6.6.0",
     "python-dotenv",
     
     # MCP (Model Context Protocol) SDK
