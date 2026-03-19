@@ -27,7 +27,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
@@ -99,7 +99,7 @@ async def run_agent():
             # Create a React agent with the LLM and MCP tools
             # InMemorySaver enables chat history - the agent remembers previous messages
             checkpointer = InMemorySaver()
-            agent = create_react_agent(llm, tools, prompt=SYSTEM_PROMPT, checkpointer=checkpointer)
+            agent = create_agent(model=llm, tools=tools, system_prompt=SYSTEM_PROMPT, checkpointer=checkpointer)
             
             # Config with thread_id to maintain conversation context
             config = {"configurable": {"thread_id": "chat-session"}}

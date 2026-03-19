@@ -22,7 +22,7 @@ Folder: `06-orchestration/`
 ## 07 – MCP Tutorial: Agentic AI with S/4HANA Product API
 
 Exercise folder: `07-mcp-tutorial/`  
-Complete solution: `07-mcp-tutorial-complete/`
+Complete (extended) solution: `07-mcp-tutorial-complete/`
 
 You will:
 

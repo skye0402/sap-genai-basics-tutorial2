@@ -18,12 +18,26 @@ This folder contains a working **agentic AI** implementation using:
 └────────┬────────┘                        └────────┬────────┘
          │                                          │
          │ LLM calls                      Tools:    │ HTTP/OData
-         ▼                                • add     ▼
-┌─────────────────┐                       • multiply    ┌─────────────────┐
-│   SAP AI Core   │                       • subtract    │  S/4HANA Cloud  │
-│   (GPT-4.1)     │                       • divide      │  Product API    │
-└─────────────────┘                       • get_product_api_documentation
-                                          • query_products
+         ▼                                          ▼
+┌─────────────────┐              ┌──────────────────────────────┐
+│   SAP AI Core   │              │  Calculator                  │
+│   (GPT-4.1)     │              │  • add, subtract,            │
+└─────────────────┘              │    multiply, divide          │
+                                 │                              │
+                                 │  S/4HANA Product API         │
+                                 │  • product_api (universal)   │
+                                 │  • search_product_descriptions│
+                                 │  • query_products            │
+                                 │  • get_product_api_documentation│
+                                 │                              │
+                                 │  S/4HANA Material Stock API  │
+                                 │  • stock_api (universal)     │
+                                 │                              │
+                                 │  Memory                      │
+                                 │  • memory_load / _save /     │
+                                 │    _delete                   │
+                                 │    (agent_memory.md)         │
+                                 └──────────────────────────────┘
 ```
 
 ## The React Agent Pattern
@@ -52,9 +66,10 @@ Agent Response: "5 times 3 plus 2 equals 17"
 
 | File | Description |
 |------|-------------|
-| `mcp_server.py` | MCP server with calculator and S/4HANA Product API tools |
+| `mcp_server.py` | MCP server with calculator, S/4HANA Product & Stock API, and memory tools |
 | `agent_client.py` | LangGraph React agent that connects to the MCP server |
 | `s4hana_product_api_docs.py` | API documentation for the S/4HANA Product Master API |
+| `agent_memory.md` | Persistent memory file — the agent reads/writes numbered notes here |
 | `pyproject.toml` | Project dependencies |
 
 ## Setup
@@ -105,7 +120,6 @@ You: What is 42 + 17?
 You: Calculate 7 times 8
 You: What is 100 minus 37?
 You: If I have 5 apples and buy 3 more, then give away 2, how many do I have?
-You: What is (10 + 5) * 3?
 ```
 
 **S/4HANA Product API:**
@@ -113,7 +127,21 @@ You: What is (10 + 5) * 3?
 You: What products do we have?
 You: Search for products containing CAT
 You: Show me finished products (type FERT)
-You: Find products related to food
+You: Get me the sales text for a product
+```
+
+**S/4HANA Material Stock:**
+```
+You: What stock do we have for material TG11?
+You: Show me stock levels at plant 1710
+```
+
+**Memory (persistent across sessions):**
+```
+You: My name is Günter and I work for SAP.
+(next session)
+You: Hi!
+→ Agent greets you by name, remembering who you are.
 ```
 
 ### Option 2: Test MCP Server Separately (MCP Inspector)
@@ -144,7 +172,7 @@ The server uses `FastMCP` to define tools:
 ```python
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("Calculator Server")
+mcp = FastMCP("Calculator and S4HANA Server")
 
 @mcp.tool()
 def add(a: int, b: int) -> int:
@@ -156,6 +184,16 @@ Key points:
 - `@mcp.tool()` decorator exposes functions as MCP tools
 - Docstrings become tool descriptions for the LLM
 - Type hints define the tool's input schema
+
+**Universal API tools** (`product_api`, `stock_api`) follow a thin-gateway pattern:
+the LLM constructs the OData path + query string, and the tool just handles
+authentication and the base URL. This keeps the tools simple and lets the LLM
+use the full power of OData (any entity, filter, expand, etc.).
+
+**Memory tools** (`memory_load`, `memory_save`, `memory_delete`) persist numbered
+notes to `agent_memory.md`. The agent loads memory at the start of every
+conversation and saves new discoveries automatically — so it remembers user
+preferences and API learnings across sessions.
 
 ### Agent Client (`agent_client.py`)
 
