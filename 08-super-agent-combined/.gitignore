@@ -1,0 +1,8 @@
+dist/
+node_modules/
+.venv/
+.env
+.env.local
+secret.yaml
+CLAUDE.md
+.claude/
